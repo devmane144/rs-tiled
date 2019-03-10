@@ -1,7 +1,5 @@
 # rs-tiled
 
-Updated
-
 [![Travis](https://travis-ci.org/mattyhall/rs-tiled.svg?branch=master)](https://travis-ci.org/mattyhall/rs-tiled)
 [![Crates.io](https://img.shields.io/crates/v/tiled.svg)](https://crates.io/crates/tiled)
 
