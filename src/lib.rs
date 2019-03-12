@@ -514,6 +514,7 @@ impl Image {
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Layer {
+    pub id: u32,
     pub name: String,
     pub opacity: f32,
     pub visible: bool,
@@ -525,12 +526,13 @@ pub struct Layer {
 
 impl Layer {
     fn new<R: Read>(parser: &mut EventReader<R>, attrs: Vec<OwnedAttribute>, width: u32) -> Result<Layer, TiledError> {
-        let ((o, v), n) = get_attrs!(
+        let ((o, v), (n, i)) = get_attrs!(
             attrs,
             optionals: [("opacity", opacity, |v:String| v.parse().ok()),
                         ("visible", visible, |v:String| v.parse().ok().map(|x:i32| x == 1))],
-            required: [("name", name, |v| Some(v))],
-            TiledError::MalformedAttributes("layer must have a name".to_string()));
+            required: [("name", name, |v| Some(v)),
+                        ("id", id, |v:String| v.parse().ok())],
+            TiledError::MalformedAttributes("layer must have a name and ID".to_string()));
         let mut tiles = Vec::new();
         let mut properties = HashMap::new();
         parse_tag!(parser, "layer",
@@ -542,13 +544,14 @@ impl Layer {
                         properties = try!(parse_properties(parser));
                         Ok(())
                    });
-        Ok(Layer {name: n, opacity: o.unwrap_or(1.0), visible: v.unwrap_or(true), tiles: tiles,
+        Ok(Layer {id: i, name: n, opacity: o.unwrap_or(1.0), visible: v.unwrap_or(true), tiles: tiles,
                   properties: properties})
     }
 }
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct ImageLayer {
+    pub id: u32,
     pub name: String,
     pub opacity: f32,
     pub visible: bool,
@@ -561,14 +564,15 @@ pub struct ImageLayer {
 impl ImageLayer {
     fn new<R: Read>(parser: &mut EventReader<R>, attrs: Vec<OwnedAttribute>)
                     -> Result<ImageLayer, TiledError> {
-        let ((o, v, ox, oy), n) = get_attrs!(
+        let ((o, v, ox, oy), (n, i)) = get_attrs!(
             attrs,
             optionals: [("opacity", opacity, |v:String| v.parse().ok()),
                         ("visible", visible, |v:String| v.parse().ok().map(|x:i32| x == 1)),
                         ("offset_x", offset_x, |v:String| v.parse().ok()),
                         ("offset_y", offset_y, |v:String| v.parse().ok())],
-            required: [("name", name, |v| Some(v))],
-            TiledError::MalformedAttributes("layer must have a name".to_string()));
+            required: [("name", name, |v| Some(v)),
+                        ("id", id, |v:String| v.parse().ok())],
+            TiledError::MalformedAttributes("layer must have a name and ID".to_string()));
         let mut properties = HashMap::new();
         let mut image: Option<Image> = None;
         parse_tag!(parser, "imagelayer",
@@ -581,6 +585,7 @@ impl ImageLayer {
                        Ok(())
                    });
         Ok(ImageLayer {
+            id: i,
             name: n,
             opacity: o.unwrap_or(1.0),
             visible: v.unwrap_or(true),
@@ -596,6 +601,7 @@ impl ImageLayer {
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct ObjectGroup {
+    pub id: u32,
     pub name: String,
     pub opacity: f32,
     pub visible: bool,
@@ -605,21 +611,22 @@ pub struct ObjectGroup {
 
 impl ObjectGroup {
     fn new<R: Read>(parser: &mut EventReader<R>, attrs: Vec<OwnedAttribute>) -> Result<ObjectGroup, TiledError> {
-        let ((o, v, c, n), ()) = get_attrs!(
+        let ((o, v, c, n), (i)) = get_attrs!(
             attrs,
             optionals: [("opacity", opacity, |v:String| v.parse().ok()),
                         ("visible", visible, |v:String| v.parse().ok().map(|x:i32| x == 1)),
                         ("color", colour, |v:String| v.parse().ok()),
                         ("name", name, |v:String| v.into())],
-            required: [],
-            TiledError::MalformedAttributes("object groups must have a name".to_string()));
+            required: [("id", id, |v:String| v.parse().ok())],
+            TiledError::MalformedAttributes("object groups must have a name and ID".to_string()));
         let mut objects = Vec::new();
         parse_tag!(parser, "objectgroup",
                    "object" => |attrs| {
                         objects.push(try!(Object::new(parser, attrs)));
                         Ok(())
                    });
-        Ok(ObjectGroup {name: n.unwrap_or(String::new()),
+        Ok(ObjectGroup {id: i,
+                        name: n.unwrap_or(String::new()), 
                         opacity: o.unwrap_or(1.0), visible: v.unwrap_or(true),
                         objects: objects,
                         colour: c})
