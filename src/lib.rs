@@ -267,15 +267,14 @@ impl Map {
                    },
                    "layer" => |attrs| {
                         let n_layer = try!(Layer::new(parser, attrs, w));
-                        layers.push(n_layer);
                         layer_draw_order.push((LayerType::TileLayer, n_layer.id));
-                        
+                        layers.push(n_layer);
                         Ok(())
                    },
                    "imagelayer" => |attrs| {
                         let n_image_layer = try!(ImageLayer::new(parser, attrs));
-                        image_layers.push(n_image_layer);
                         layer_draw_order.push((LayerType::ImageLayer, n_image_layer.id));
+                        image_layers.push(n_image_layer);
                         Ok(())
                    },
                    "properties" => |_| {
@@ -284,8 +283,8 @@ impl Map {
                    },
                    "objectgroup" => |attrs| {
                         let n_obj_group = try!(ObjectGroup::new(parser, attrs));
-                        object_groups.push(n_obj_group);
-                        layer_draw_order.push((LayerType::ObjLayer, n_obj_group.id));                
+                        layer_draw_order.push((LayerType::ObjLayer, n_obj_group.id));
+                        object_groups.push(n_obj_group);             
                         Ok(())
                    });
         Ok(Map {version: v, orientation: o,
