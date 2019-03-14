@@ -259,7 +259,7 @@ impl Map {
         let mut properties = HashMap::new();
         let mut object_groups = Vec::new();
         let mut layer_draw_order = Vec::new();
-
+        let mut layer_counter = 0;
         parse_tag!(parser, "map",
                    "tileset" => | attrs| {
                         tilesets.push(try!(Tileset::new(parser, attrs, map_path)));
@@ -267,12 +267,14 @@ impl Map {
                    },
                    "layer" => |attrs| {
                         layers.push(try!(Layer::new(parser, attrs, w)));
-                        layer_draw_order.push((LayerType::TileLayer, tilesets.len() - 1));
+                        layer_draw_order.push((LayerType::TileLayer, layer_counter));
+                        layer_counter += 1;
                         Ok(())
                    },
                    "imagelayer" => |attrs| {
                         image_layers.push(try!(ImageLayer::new(parser, attrs)));
-                        layer_draw_order.push((LayerType::ImageLayer, image_layers.len() - 1));
+                        layer_draw_order.push((LayerType::ImageLayer, layer_counter));
+                        layer_counter += 1;
                         Ok(())
                    },
                    "properties" => |_| {
@@ -281,7 +283,8 @@ impl Map {
                    },
                    "objectgroup" => |attrs| {
                        object_groups.push(try!(ObjectGroup::new(parser, attrs)));
-                       layer_draw_order.push((LayerType::ObjLayer, object_groups.len() - 1));
+                        layer_draw_order.push((LayerType::ObjLayer, layer_counter));
+                        layer_counter += 1;                       
                        Ok(())
                    });
         Ok(Map {version: v, orientation: o,
