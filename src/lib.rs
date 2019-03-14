@@ -259,22 +259,23 @@ impl Map {
         let mut properties = HashMap::new();
         let mut object_groups = Vec::new();
         let mut layer_draw_order = Vec::new();
-        let mut layer_counter = 0;
+        
         parse_tag!(parser, "map",
                    "tileset" => | attrs| {
                         tilesets.push(try!(Tileset::new(parser, attrs, map_path)));
                         Ok(())
                    },
                    "layer" => |attrs| {
-                        layers.push(try!(Layer::new(parser, attrs, w)));
-                        layer_draw_order.push((LayerType::TileLayer, layer_counter));
-                        layer_counter += 1;
+                        let n_layer = try!(Layer::new(parser, attrs, w));
+                        layers.push(n_layer);
+                        layer_draw_order.push((LayerType::TileLayer, n_layer.id));
+                        
                         Ok(())
                    },
                    "imagelayer" => |attrs| {
-                        image_layers.push(try!(ImageLayer::new(parser, attrs)));
-                        layer_draw_order.push((LayerType::ImageLayer, layer_counter));
-                        layer_counter += 1;
+                        let n_image_layer = try!(ImageLayer::new(parser, attrs));
+                        image_layers.push(n_image_layer);
+                        layer_draw_order.push((LayerType::ImageLayer, n_image_layer.id));
                         Ok(())
                    },
                    "properties" => |_| {
@@ -282,10 +283,10 @@ impl Map {
                         Ok(())
                    },
                    "objectgroup" => |attrs| {
-                       object_groups.push(try!(ObjectGroup::new(parser, attrs)));
-                        layer_draw_order.push((LayerType::ObjLayer, layer_counter));
-                        layer_counter += 1;                       
-                       Ok(())
+                        let n_obj_group = try!(ObjectGroup::new(parser, attrs));
+                        object_groups.push(n_obj_group);
+                        layer_draw_order.push((LayerType::ObjLayer, n_obj_group.id));                
+                        Ok(())
                    });
         Ok(Map {version: v, orientation: o,
                 width: w, height: h,
