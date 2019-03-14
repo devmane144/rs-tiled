@@ -215,6 +215,12 @@ fn parse_properties<R: Read>(parser: &mut EventReader<R>) -> Result<Properties, 
     );
     Ok(p)
 }
+#[derive(Debug, PartialEq, Clone)]
+pub enum LayerType{
+    TileLayer,
+    ImageLayer,
+    ObjLayer
+}
 
 /// All Tiled files will be parsed into this. Holds all the layers and tilesets
 #[derive(Debug, PartialEq, Clone)]
@@ -231,6 +237,7 @@ pub struct Map {
     pub object_groups: Vec<ObjectGroup>,
     pub properties: Properties,
     pub background_colour: Option<Colour>,
+    pub layer_draw_order: Vec<(LayerType, usize)>,
 }
 
 impl Map {
@@ -251,6 +258,8 @@ impl Map {
         let mut image_layers = Vec::new();
         let mut properties = HashMap::new();
         let mut object_groups = Vec::new();
+        let mut layer_draw_order = Vec::new();
+
         parse_tag!(parser, "map",
                    "tileset" => | attrs| {
                         tilesets.push(try!(Tileset::new(parser, attrs, map_path)));
@@ -258,10 +267,12 @@ impl Map {
                    },
                    "layer" => |attrs| {
                         layers.push(try!(Layer::new(parser, attrs, w)));
+                        layer_draw_order.push((LayerType::TileLayer, tilesets.len() - 1));
                         Ok(())
                    },
                    "imagelayer" => |attrs| {
                         image_layers.push(try!(ImageLayer::new(parser, attrs)));
+                        layer_draw_order.push((LayerType::ImageLayer, image_layers.len() - 1));
                         Ok(())
                    },
                    "properties" => |_| {
@@ -270,6 +281,7 @@ impl Map {
                    },
                    "objectgroup" => |attrs| {
                        object_groups.push(try!(ObjectGroup::new(parser, attrs)));
+                       layer_draw_order.push((LayerType::ObjLayer, object_groups.len() - 1));
                        Ok(())
                    });
         Ok(Map {version: v, orientation: o,
@@ -280,7 +292,8 @@ impl Map {
                 image_layers,
                 object_groups,
                 properties,
-                background_colour: c,})
+                background_colour: c,
+                layer_draw_order: layer_draw_order})
     }
 
     /// This function will return the correct Tileset given a GID.
