@@ -237,7 +237,7 @@ pub struct Map {
     pub object_groups: Vec<ObjectGroup>,
     pub properties: Properties,
     pub background_colour: Option<Colour>,
-    pub layer_draw_order: Vec<(LayerType, usize)>,
+    pub layer_draw_order: Vec<(LayerType, u32)>,
 }
 
 impl Map {
